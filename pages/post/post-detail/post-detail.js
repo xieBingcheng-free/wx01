@@ -1,11 +1,54 @@
 // pages/post/post-detail/post-detail.js
 var postDate=require('../../../data/post-data.js')
+var app=getApp();
 Page({
 
   /**
    * 页面的初始数据
    */
   data: {
+    isPlayingMusic:false
+  },
+  // //监听
+  setMusicMonitor:function(){
+    var that = this
+    wx.onBackgroundAudioPlay(function () {
+      that.setData({
+        isPlayingMusic: true
+      })
+      app.globalData.g_isPlayingMusic=true; 
+      app.globalData.g_currentMusicPostId=that.data.currentPostId; 
+    }),
+      wx.onBackgroundAudioPause(function () {
+        that.setData({
+          isPlayingMusic: false
+        })
+      app.globalData.g_isPlayingMusic = false; 
+      app.globalData.g_currentMusicPostId = null; 
+      })
+  },
+  //音乐播放
+  onMusicTap(event){
+    var currentPostId = this.data.postId;
+   
+    var postData = postDate.postList[currentPostId]
+    // console.log(postData)
+    var isPlayingMusic=this.data.isPlayingMusic;
+    if(isPlayingMusic){
+      wx.pauseBackgroundAudio();
+      this.setData({
+        isPlayingMusic:false
+      })
+    }else{
+      wx.playBackgroundAudio({
+        dataUrl: postData.music.url,
+        title: postData.music.title,
+        coverImgUrl: postData.music.coverImg,
+      })
+      this.setData({
+        isPlayingMusic: true
+      })
+    }
     
   },
   //分享
@@ -62,20 +105,29 @@ Page({
       postData
     })
     /////
-    var postsCollected=wx.getStorageSync('postsCollected')
+    var postsCollected = wx.getStorageSync('posts_collected')
     if (postsCollected){
       var postCollected=postsCollected[postId]
       this.setData({
         collected: postCollected
       })
-      console.log(this.data.collected)
+     
     }else{
       var postsCollected={};
       postsCollected[postId]=false;
       wx.setStorageSync('posts_collected', postsCollected)
     }
-    console.log(this.data.collected)
-  },
+    //
+    if(app.globalData.g_isPlayingMusic && app.g_currentMusicPostId===postId){
+      this.setData({
+        isPlayingMusic:true
+      })
+    }
+    //监听  
+    this.setMusicMonitor();
+
+ },
+
 
   /**
    * 生命周期函数--监听页面初次渲染完成

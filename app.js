@@ -34,6 +34,8 @@ App({
     })
   },
   globalData: {
-    userInfo: null
+    userInfo: null,
+    g_isPlayingMusic:false,//记录音乐播放状态
+    g_currentMusicPostId:null//记录第几首音乐
   }
 })
